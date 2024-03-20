@@ -18,33 +18,21 @@ type State struct {
 func NewState() State {
 	return State{CharCount: 12, NumCount: 0, SymbolCount: 0}
 }
-func randomI() int {
-	min := 0
-	max := 9
-	return rand.Intn((max - min) + min)
-}
-func randomS() string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	seed := rand.NewSource(time.Now().UnixNano())
-	random := rand.New(seed)
-	str := charset[random.Intn(len(charset))]
-	return string(str)
-}
-func randomC() string {
-	const charset = "!@#$%^&*()_+{}|?><.,/;"
-	seed := rand.NewSource(time.Now().UnixNano())
-	random := rand.New(seed)
-	str := charset[random.Intn(len(charset))]
-	return string(str)
+
+func randomChar(charset string) string {
+	return string(charset[rand.Intn(len(charset))])
 }
 
 func main() {
 	var str strings.Builder
 	state := NewState()
 
+	// Seed initialization
+	rand.Seed(time.Now().UnixNano())
+
 	// CLI flags
 	numCountPtr := flag.Int("num", 0, "number of numbers in the generated password")
-	symbolCountPtr := flag.Int("symboli", 12, "number of special characters in the generated password")
+	symbolCountPtr := flag.Int("symbol", 0, "number of special characters in the generated password")
 	charCountPtr := flag.Int("char", 12, "number of characters in the generated password")
 	flag.Parse()
 
@@ -57,21 +45,26 @@ func main() {
 	flagCount := len(flags)
 	if flagCount == 0 {
 		fmt.Println("Missing flags")
+		return
 	}
 
 	if flagCount >= 1 && flags[0] == "gen" {
 		state.NumCount = *numCountPtr
 		state.CharCount = *charCountPtr
 		state.SymbolCount = *symbolCountPtr
+
+		const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		const symbolCharset = "!@#$%^&*()_+{}|?><.,/;"
+
 		for i := 0; i < state.CharCount; i++ {
-			str.WriteString(randomS())
+			str.WriteString(randomChar(charset))
 		}
 		for i := 0; i < state.NumCount; i++ {
-			num := randomI()
+			num := rand.Intn(10) // Random number between 0-9
 			str.WriteString(strconv.Itoa(num))
 		}
 		for i := 0; i < state.SymbolCount; i++ {
-			str.WriteString(randomC())
+			str.WriteString(randomChar(symbolCharset))
 		}
 		fmt.Println("Your generated password is:\n------------------------\n" + str.String())
 	}
