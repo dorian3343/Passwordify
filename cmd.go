@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -17,7 +18,11 @@ type State struct {
 func NewState() State {
 	return State{CharCount: 12, NumCount: 0, Password: ""}
 }
-
+func randomI() int {
+	min := 0
+	max := 9
+	return rand.Intn((max - min) + min)
+}
 func randomS() string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	seed := rand.NewSource(time.Now().UnixNano())
@@ -30,13 +35,13 @@ func main() {
 	state := NewState()
 
 	// CLI flags
+	numCountPtr := flag.Int("num", 0, "number of numbers in the generated password")
 	charCountPtr := flag.Int("char", 12, "number of characters in the generated password")
 	flag.Parse()
 
-	// Check if the "char" flag is provided
 	if *charCountPtr < 1 {
 		fmt.Println("Invalid value for char flag. Defaulting to 12.")
-		*charCountPtr = 12 // Defaulting to 12 if provided value is less than 1
+		*charCountPtr = 12
 	}
 
 	flags := flag.Args()
@@ -46,10 +51,14 @@ func main() {
 	}
 
 	if flagCount >= 1 && flags[0] == "gen" {
+		state.NumCount = *numCountPtr
 		state.CharCount = *charCountPtr
-		fmt.Println(state.CharCount)
 		for i := 0; i < state.CharCount; i++ {
 			str.WriteString(randomS())
+		}
+		for i := 0; i < state.NumCount; i++ {
+			num := randomI()
+			str.WriteString(strconv.Itoa(num))
 		}
 		fmt.Println("Your generated password is:\n------------------------\n" + str.String())
 	}
